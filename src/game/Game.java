@@ -1,8 +1,11 @@
 package game;
 
+import metaStrategies.CardCountHintsMeta;
 import models.CardStacks;
 import models.Deck;
+import models.Knowledge;
 import models.TableState;
+import strategies.metas.HintKnowledgeWithMeta;
 import strategies.randoms.GiveRandomHint;
 import strategies.sureThings.DiscardFirstDiscardable;
 import strategies.sureThings.PlayFirstPlayable;
@@ -17,11 +20,15 @@ public class Game {
     public static final int numGames = 1000;
     public static List<Integer> scores = new ArrayList<>();
     //TODO Replace random strategy with non-random strategies
-    public static final List<Strategy> strategies = List.of(
+    public static final List<Strategy<TableState>> strategies = List.of(
+        new HintKnowledgeWithMeta(3, 1, Knowledge.Meta.PLAY),
         new DiscardFirstDiscardable(),
         new PlayFirstPlayable(),
         new GiveRandomHint(3),
         new RandomStrategy()
+    );
+    public static final List<Strategy<Knowledge.Meta>> metaStrategies = List.of(
+        new CardCountHintsMeta(1, Knowledge.Meta.PLAY)
     );
 
     public static void main(String[] args) {
@@ -52,7 +59,7 @@ public class Game {
     }
 
     public static TableState takeTurn(TableState tableState) throws Exception{
-        for (Strategy strategy: strategies) {
+        for (Strategy<TableState> strategy: strategies) {
             if (strategy.isApplicable(tableState)) {
                 return strategy.runStrategy(tableState);
             }

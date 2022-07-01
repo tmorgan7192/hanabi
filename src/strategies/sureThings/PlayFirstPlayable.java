@@ -8,7 +8,7 @@ import strategies.Strategy;
 
 import java.util.Optional;
 
-public class PlayFirstPlayable implements Strategy {
+public class PlayFirstPlayable implements Strategy<TableState> {
     public PlayFirstPlayable()
     {
     }

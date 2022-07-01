@@ -2,9 +2,9 @@ package strategies;
 
 import models.TableState;
 
-public interface Strategy {
+public interface Strategy<T> {
     boolean isApplicable(TableState tableState);
 
-    TableState runStrategy(TableState tableState);
+    T runStrategy(TableState tableState);
 }
 

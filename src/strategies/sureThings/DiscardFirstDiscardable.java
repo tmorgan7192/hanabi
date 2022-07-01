@@ -8,7 +8,7 @@ import strategies.Strategy;
 
 import java.util.Optional;
 
-public class DiscardFirstDiscardable implements Strategy {
+public class DiscardFirstDiscardable implements Strategy<TableState> {
     public DiscardFirstDiscardable()
     {
     }

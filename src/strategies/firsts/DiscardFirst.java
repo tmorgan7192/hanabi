@@ -5,7 +5,7 @@ import strategies.Strategy;
 
 import static models.TableState.MAX_HINT_COUNT;
 
-public class DiscardFirst implements Strategy {
+public class DiscardFirst implements Strategy<TableState> {
     public DiscardFirst()
     {
     }

@@ -7,10 +7,11 @@ import java.util.function.Predicate;
 public record Card(
     Knowledge.Color color,
     Knowledge.CardNumber number,
-    Map<Knowledge.KnowledgeType, Map<String, Boolean>> knowledgeMap
+    Map<Knowledge.KnowledgeType, Map<String, Boolean>> knowledgeMap,
+    Knowledge.Meta meta
 ) {
     public static Card createCard(Knowledge.Color color, Knowledge.CardNumber number) {
-        return new Card(color, number, initializeKnowledgeMap());
+        return new Card(color, number, initializeKnowledgeMap(), null);
     }
 
     public static Map<Knowledge.KnowledgeType, Map<String, Boolean>> initializeKnowledgeMap() {
@@ -29,7 +30,6 @@ public record Card(
         }
         knowledgeMap.put(Knowledge.KnowledgeType.COLOR, colorMap);
         knowledgeMap.put(Knowledge.KnowledgeType.NUMBER, numberMap);
-        knowledgeMap.put(Knowledge.KnowledgeType.META, metaMap);
         return knowledgeMap;
     }
 
@@ -37,7 +37,6 @@ public record Card(
         return switch (type) {
             case COLOR -> Arrays.stream(Knowledge.Color.values()).map(Enum::toString).toList();
             case NUMBER -> Arrays.stream(Knowledge.CardNumber.values()).map(Enum::toString).toList();
-            case META -> Arrays.stream(Knowledge.Meta.values()).map(Enum::toString).toList();
         };
     }
 
@@ -45,29 +44,27 @@ public record Card(
         return this.number.ordinal() + 1;
     }
 
+    public static Predicate<Card> matchesKnowledge(Knowledge knowledge){
+        return card ->
+            (knowledge.type().equals(Knowledge.KnowledgeType.COLOR) && card.color().toString().equals(knowledge.value())) ||
+            (knowledge.type().equals(Knowledge.KnowledgeType.NUMBER) && card.number().toString().equals(knowledge.value()));
+
+    }
     public Map<String, Boolean> getKnowledgeMap(Knowledge.KnowledgeType type) {
         return this.knowledgeMap.get(type);
     }
 
-    public static Function<Card, Card> updateKnowledgeMap(
-            Knowledge.KnowledgeType type, Map<String, Boolean> knowledgeMap
-    ) {
+    public static Function<Card, Card> updateKnowledge(Knowledge knowledge, Knowledge.Meta meta) {
         return card -> {
+            Map<String, Boolean> typedKnowledgeMap = new HashMap<>();
+            for (String key: Card.getKeys(knowledge.type())){
+                typedKnowledgeMap.put(key, key.equals(knowledge.value()));
+            }
             Map<Knowledge.KnowledgeType, Map<String, Boolean>> newKnowledgeMap = new HashMap<>();
             for(Knowledge.KnowledgeType key: Knowledge.KnowledgeType.values()){
-                newKnowledgeMap.put(key, type.equals(key) ? knowledgeMap : card.getKnowledgeMap(key));
+                newKnowledgeMap.put(key, knowledge.type().equals(key) ? typedKnowledgeMap : card.getKnowledgeMap(key));
             }
-            return new Card(card.color(), card.number(), newKnowledgeMap);
-        };
-    }
-
-    public static Function<Card, Card> updateKnowledge(Knowledge knowledge) {
-        return card -> {
-            Map<String, Boolean> newKnowledgeMap = new HashMap<>();
-            for (String key: Card.getKeys(knowledge.type())){
-                newKnowledgeMap.put(key, key.equals(knowledge.value()));
-            }
-            return Card.updateKnowledgeMap(knowledge.type(), newKnowledgeMap).apply(card);
+            return new Card(card.color(), card.number(), newKnowledgeMap, card.meta() == null ? meta : card.meta());
         };
 
     }

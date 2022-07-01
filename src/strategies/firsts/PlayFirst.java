@@ -8,7 +8,7 @@ import java.util.Random;
 import static game.Game.numPlayers;
 import static game.Util.getNumCards;
 
-public class PlayFirst implements Strategy {
+public class PlayFirst implements Strategy<TableState> {
     public PlayFirst()
     {
     }

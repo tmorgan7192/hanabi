@@ -9,7 +9,7 @@ import static game.Game.numPlayers;
 import static game.Util.getNumCards;
 import static models.TableState.MAX_HINT_COUNT;
 
-public class DiscardRandomly implements Strategy {
+public class DiscardRandomly implements Strategy<TableState> {
     public DiscardRandomly()
     {
     }

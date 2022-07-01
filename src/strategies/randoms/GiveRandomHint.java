@@ -6,7 +6,7 @@ import strategies.Strategy;
 
 import java.util.Random;
 
-public class GiveRandomHint implements Strategy {
+public class GiveRandomHint implements Strategy<TableState> {
     private final int minHints;
 
     public GiveRandomHint(int minHints)
@@ -15,7 +15,7 @@ public class GiveRandomHint implements Strategy {
     }
 
     public boolean isApplicable(TableState tableState) {
-        return tableState.hintCount() > minHints;
+        return tableState.hintCount() >= minHints;
     }
 
     public TableState runStrategy(TableState tableState) {

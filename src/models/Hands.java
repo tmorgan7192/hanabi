@@ -16,10 +16,12 @@ public record Hands(List<Hand> hands) {
         return (cardIndex, tableState) -> Hands.getHand().apply(tableState).hand().get(cardIndex);
     }
 
-    public static Function<Hands, Hands> updateHand(int playerIndex, Hand newHand) {
-        return hands -> new Hands(
-            IntStream.range(0, hands.hands().size())
-                .mapToObj(index-> (index == playerIndex) ? newHand : hands.hands().get(index))
+    public static Function<TableState, Hands> updateHand(Hand newHand) {
+        return tableState -> new Hands(
+            IntStream.range(0, tableState.hands().hands().size())
+                .mapToObj(
+                    index-> (index == tableState.activePlayerIndex()) ? newHand : tableState.hands().hands().get(index)
+                )
                 .collect(Collectors.toList())
         );
     }
@@ -33,12 +35,13 @@ public record Hands(List<Hand> hands) {
     }
 
     public static Function<TableState, Hands> updateKnowledge(Knowledge knowledge) {
-        return map(Hand.updateKnowledge(knowledge));
+        return tableState -> {
+            Knowledge.Meta meta = Knowledge.checkMetaImplications().apply(tableState);
+            return map(Hand.updateKnowledge(knowledge, meta)).apply(tableState);
+        };
     }
 
-
     public static Function<TableState, Hands> map(Function<Hand, Hand> function) {
-        return tableState ->
-            updateHand(tableState.activePlayerIndex(), function.apply(getHand().apply(tableState))).apply(tableState.hands());
+        return tableState -> updateHand(function.apply(Hands.getHand().apply(tableState))).apply(tableState);
     }
 }
