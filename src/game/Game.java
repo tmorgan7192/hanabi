@@ -1,34 +1,44 @@
 package game;
 
-import metaStrategies.CardCountHintsMeta;
+import metaStrategies.CardCountMeta;
+import metaStrategies.MetaStrategy;
 import models.CardStacks;
 import models.Deck;
 import models.Knowledge;
 import models.TableState;
-import strategies.metas.HintKnowledgeWithMeta;
-import strategies.randoms.GiveRandomHint;
-import strategies.sureThings.DiscardFirstDiscardable;
-import strategies.sureThings.PlayFirstPlayable;
-import strategies.randoms.RandomStrategy;
 import strategies.Strategy;
+import strategies.discards.DiscardFirst;
+import strategies.discards.DiscardFirstDiscardable;
+import strategies.discards.DiscardFirstMeta;
+import strategies.hints.HintFirstPlayable;
+import strategies.hints.HintKnowledgeWithMeta;
+import strategies.hints.HintLowestPlayable;
+import strategies.hints.HintUnsafeToDiscard;
+import strategies.plays.PlayFirst;
+import strategies.plays.PlayFirstMeta;
+import strategies.plays.PlayFirstPlayable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Game {
     public static final int numPlayers = 4;
     public static final int numGames = 1000;
+    public static final boolean printLogs = false;
     public static List<Integer> scores = new ArrayList<>();
-    //TODO Replace random strategy with non-random strategies
-    public static final List<Strategy<TableState>> strategies = List.of(
-        new HintKnowledgeWithMeta(3, 1, Knowledge.Meta.PLAY),
+    public static final List<Strategy> strategies = List.of(
         new DiscardFirstDiscardable(),
+        new DiscardFirstMeta(),
         new PlayFirstPlayable(),
-        new GiveRandomHint(3),
-        new RandomStrategy()
+        new PlayFirstMeta(),
+        new HintKnowledgeWithMeta(2, 1, Knowledge.KnowledgeType.NUMBER, Knowledge.Meta.PLAY),
+        new HintLowestPlayable(2, Knowledge.KnowledgeType.NUMBER),
+        new DiscardFirst(),
+        new PlayFirst()
     );
-    public static final List<Strategy<Knowledge.Meta>> metaStrategies = List.of(
-        new CardCountHintsMeta(1, Knowledge.Meta.PLAY)
+    public static final List<MetaStrategy> metaStrategies = List.of(
+        new CardCountMeta(1, Knowledge.Meta.PLAY)
     );
 
     public static void main(String[] args) {
@@ -39,7 +49,7 @@ public class Game {
                 playGame(deck);
             }
             catch (Exception e){
-                System.out.println("ERROR!: " + e);
+                System.out.println("ERROR!: " + e + "\n" + Arrays.toString(e.getStackTrace()));
                 System.exit(1);
             }
         }
@@ -50,18 +60,25 @@ public class Game {
 
     public static void playGame(Deck deck) throws Exception {
         TableState tableState = TableState.initializeTable(numPlayers, deck);
-        int playerIndex = 0;
+        if (printLogs) {
+            System.out.println(tableState);
+        }
         while (!Util.gameOver().test(tableState)) {
             tableState = takeTurn(tableState);
-            playerIndex = (playerIndex + 1) % numPlayers;
+            if (printLogs) {
+                System.out.println(tableState);
+            }
         }
         scores.add(CardStacks.getScore().apply(tableState));
     }
 
     public static TableState takeTurn(TableState tableState) throws Exception{
-        for (Strategy<TableState> strategy: strategies) {
-            if (strategy.isApplicable(tableState)) {
-                return strategy.runStrategy(tableState);
+        for (Strategy strategy: strategies) {
+            if (strategy.isApplicable().test(tableState)) {
+                if(printLogs){
+                    System.out.println("Applying strategy " + strategy.getClass());
+                }
+                return strategy.runStrategy().apply(tableState);
             }
         }
         throw new Exception("No viable strategy");

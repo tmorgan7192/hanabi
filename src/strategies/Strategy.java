@@ -2,9 +2,12 @@ package strategies;
 
 import models.TableState;
 
-public interface Strategy<T> {
-    boolean isApplicable(TableState tableState);
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-    T runStrategy(TableState tableState);
+public interface Strategy {
+    Predicate<TableState> isApplicable();
+
+    Function<TableState, TableState> runStrategy();
 }
 

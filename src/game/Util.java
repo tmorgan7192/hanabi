@@ -1,6 +1,7 @@
 package game;
 
 import models.CardStacks;
+import models.Knowledge;
 import models.TableState;
 
 import java.util.function.Predicate;
@@ -29,6 +30,14 @@ public class Util {
             case 2, 3 -> 4;
             case 4, 5 -> 5;
             default -> throw new IllegalArgumentException("Number of players must be between 2 and 5");
+        };
+    }
+
+    public static int getNumCards(Knowledge.CardNumber number) {
+        return switch (number) {
+            case ONE -> 3;
+            case TWO, THREE, FOUR -> 2;
+            case FIVE -> 1;
         };
     }
 

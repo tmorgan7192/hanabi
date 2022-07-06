@@ -4,17 +4,18 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.function.Function;
 
+import static game.Util.getNumCards;
+
 public record Deck(Stack<Card> deck) {
+    public int size() {
+        return deck.size();
+    }
     public static Deck initializeDeck() {
         Stack<Card> deck = new Stack<>();
         Random random = new Random();
         int index = 0;
         for (Knowledge.CardNumber number: Knowledge.CardNumber.values()) {
-            int numCards = switch (number) {
-                case ONE -> 3;
-                case TWO, THREE, FOUR -> 2;
-                case FIVE -> 1;
-            };
+            int numCards = getNumCards(number);
             for (Knowledge.Color color : Knowledge.Color.values()) {
                 for (int i=0; i<numCards; ++i){
                     deck.add(index, Card.createCard(color, number));
@@ -31,11 +32,17 @@ public record Deck(Stack<Card> deck) {
     }
 
     public static Card getTopCardFromDeck(Deck deck) {
+        if (deck.deck().isEmpty()) {
+            throw new IllegalStateException("Should not call getTopCardFromDeck for empty deck");
+        }
         return deck.deck().peek();
     }
 
     public static Function<Deck, Deck> removeCardFromDeck() {
         return deck -> {
+            if (deck.deck().isEmpty()) {
+                throw new IllegalStateException("Should not call getTopCardFromDeck for empty deck");
+            }
             Stack<Card> newDeck = (Stack<Card>) deck.deck().clone();
             newDeck.pop();
             return new Deck(newDeck);
