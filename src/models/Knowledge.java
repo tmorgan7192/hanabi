@@ -52,11 +52,11 @@ public record Knowledge(KnowledgeType type, String value) {
     }
 
     public static Predicate<List<Card>> metaHoldsForAll(Meta meta, TableState tableState) {
-        return cards -> cards.stream().allMatch(metaHolds(meta, tableState));
+        return cards -> cards != null && cards.stream().allMatch(metaHolds(meta, tableState));
     }
 
     public static Predicate<List<Card>> metaHoldsForAny(Meta meta, TableState tableState) {
-        return cards -> cards.stream().anyMatch(metaHolds(meta, tableState));
+        return cards -> cards != null && cards.stream().anyMatch(metaHolds(meta, tableState));
     }
 
 }
