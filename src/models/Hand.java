@@ -1,5 +1,7 @@
 package models;
 
+import game.Game;
+import metaStrategies.MetaStrategy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static models.Card.getKeys;
+import static models.Card.matchesKnowledge;
 
 public record Hand(List<Card> hand, Integer index) {
     @Contract(pure = true)
@@ -99,12 +102,9 @@ public record Hand(List<Card> hand, Integer index) {
     public static @NotNull Function<Hand, Hand> updateKnowledge(Knowledge knowledge) {
         return hand -> {
             List<Card> newHand = new ArrayList<>();
-            Knowledge.Meta meta = Knowledge.checkMetaImplications(knowledge).apply(hand);
             for (int index = 0; index < hand.size(); ++index) {
                 Card oldCard = Hand.getCard().apply(index, hand);
                 Card newCard = Card.updateKnowledge(knowledge).apply(oldCard);
-                if (Card.matchesKnowledge(knowledge).test(oldCard))
-                    newCard = Card.updateMeta(meta).apply(newCard);
                 newHand.add(newCard);
             }
 
@@ -140,7 +140,7 @@ public record Hand(List<Card> hand, Integer index) {
             if (knowledge == null) {
                 return null;
             }
-            return hand.stream().filter(Card.matchesKnowledge(knowledge)).collect(Collectors.toList());
+            return hand.stream().filter(matchesKnowledge(knowledge)).collect(Collectors.toList());
         };
     }
 
@@ -150,7 +150,7 @@ public record Hand(List<Card> hand, Integer index) {
             if (knowledge == null) {
                 return null;
             }
-            return hand.stream().filter(Card.matchesKnowledge(knowledge).negate()).collect(Collectors.toList());
+            return hand.stream().filter(matchesKnowledge(knowledge).negate()).collect(Collectors.toList());
         };
     }
 

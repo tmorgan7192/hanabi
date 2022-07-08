@@ -1,9 +1,12 @@
 package metaStrategies;
 
-import models.Hand;
 import models.Knowledge;
+import models.TableState;
 
+import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static metaStrategies.MetaUtil.applyMetaToCardsThatMatchKnowledge;
 
 
 public class SaveFivesMeta extends MetaStrategy {
@@ -13,7 +16,12 @@ public class SaveFivesMeta extends MetaStrategy {
     }
 
     @Override
-    public Predicate<Hand> isApplicable(Knowledge knowledge) {
-        return hand -> knowledge.value().equals(Knowledge.CardNumber.FIVE.toString());
+    public Predicate<TableState> isApplicable(Knowledge knowledge) {
+        return tableState -> knowledge.value().equals(Knowledge.CardNumber.FIVE.toString());
+    }
+
+    @Override
+    public Function<TableState, TableState> applyMeta(Knowledge knowledge) {
+        return applyMetaToCardsThatMatchKnowledge(knowledge, meta);
     }
 }

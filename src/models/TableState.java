@@ -1,5 +1,7 @@
 package models;
 
+import game.Game;
+import metaStrategies.MetaStrategy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -89,6 +91,21 @@ public record TableState(
     @Contract(pure = true)
     public static @NotNull Function<TableState, TableState> updateKnowledge(Knowledge knowledge) {
         return mapWithIndex(Hand.updateKnowledge(knowledge), knowledge.playerIndex());
+    }
+
+    public static @NotNull Function<TableState, TableState> updateMeta(Knowledge knowledge) {
+        return tableState -> {
+            if (knowledge == null) {
+                return tableState;
+            }
+            for (MetaStrategy strategy: Game.metaStrategies) {
+                if (strategy.isApplicable(knowledge).test(tableState)) {
+                    return strategy.applyMeta(knowledge).apply(tableState);
+                }
+            }
+
+            return tableState;
+        };
     }
 
     @Contract(pure = true)
@@ -246,7 +263,7 @@ public record TableState(
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<TableState, TableState> endTurn() {
-        return bumpTurnsInHand().andThen(updateOtCount()).andThen(incrementActivePlayerIndex());
+    public static @NotNull Function<TableState, TableState> endTurn(Knowledge knowledgeFromHint) {
+        return updateMeta(knowledgeFromHint).andThen(bumpTurnsInHand()).andThen(updateOtCount()).andThen(incrementActivePlayerIndex());
     }
 }

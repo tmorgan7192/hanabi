@@ -1,13 +1,14 @@
 package metaStrategies;
 
-import models.Card;
-import models.Hand;
-import models.Knowledge;
+import models.*;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static metaStrategies.MetaUtil.applyMetaToActivePlayer;
 import static models.Hand.getCardsNotMatchingKnowledge;
+import static models.Hands.getHand;
 
 public class SafeToDiscardMeta extends MetaStrategy {
     private final int minNumTurnsInHand;
@@ -19,13 +20,20 @@ public class SafeToDiscardMeta extends MetaStrategy {
     }
 
     @Override
-    public Predicate<Hand> isApplicable(Knowledge knowledge) {
-        return hand -> {
-            List<Card> cards = getCardsNotMatchingKnowledge(hand).apply(knowledge);
+    public Predicate<TableState> isApplicable(Knowledge knowledge) {
+        return tableState -> {
+            List<Card> cards = getCardsNotMatchingKnowledge(
+                getHand(knowledge.playerIndex()).apply(tableState)
+            ).apply(knowledge);
             if (cards == null){
                 return false;
             }
             return cards.stream().anyMatch(card -> card.numberOfTurnsInHand() >= minNumTurnsInHand);
         };
+    }
+
+    @Override
+    public Function<TableState, TableState> applyMeta(Knowledge knowledge) {
+        return applyMetaToActivePlayer(meta, card -> card.number().equals(Knowledge.CardNumber.FIVE));
     }
 }

@@ -139,7 +139,7 @@ public record Card(
                 card.color(),
                 card.number(),
                 newKnowledgeMap,
-                null,
+                card.meta(),
                 card.numberOfTurnsInHand()
             );
         };
@@ -196,7 +196,9 @@ public record Card(
 
     @Contract(pure = true)
     public static @NotNull Predicate<Card> metaMightBe(Knowledge.Meta meta) {
-        return card -> card.meta == null || card.meta.equals(meta);
+        return card -> card.meta == null
+                || card.meta.equals(meta)
+                || (card.meta.equals(Knowledge.Meta.SAVE) && meta == Knowledge.Meta.PLAY);
     }
 }
 

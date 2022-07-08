@@ -62,18 +62,6 @@ public record Knowledge(KnowledgeType type, String value, int playerIndex) {
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<Hand, Meta> checkMetaImplications(Knowledge knowledge){
-        return hand -> {
-            for (MetaStrategy strategy: Game.metaStrategies) {
-                if (strategy.isApplicable(knowledge).test(hand)) {
-                    return strategy.meta;
-                }
-            }
-            return null;
-        };
-    }
-
-    @Contract(pure = true)
     public static @NotNull Predicate<Card> metaHolds(Meta meta, TableState tableState) {
         return card -> (meta == Meta.PLAY && Card.cardIsPlayable(tableState).test(card))
             || (meta == Meta.DISCARD && Card.cardIsDiscardable(tableState).test(card));

@@ -5,6 +5,7 @@ import models.Knowledge;
 import models.TableState;
 import strategies.Strategy;
 
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class MetaStrategy {
@@ -13,6 +14,8 @@ public abstract class MetaStrategy {
         this.meta = meta;
     }
 
-    public abstract Predicate<Hand> isApplicable(Knowledge knowledge);
+    public abstract Predicate<TableState> isApplicable(Knowledge knowledge);
+
+    public abstract Function<TableState, TableState> applyMeta(Knowledge knowledge);
 }
 
