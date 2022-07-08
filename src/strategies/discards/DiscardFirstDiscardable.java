@@ -13,7 +13,7 @@ public class DiscardFirstDiscardable extends DiscardStrategy {
 
     @Override
     public Integer getDiscardCardIndex(TableState tableState) {
-        Hand hand = Hands.getHand().apply(tableState);
+        Hand hand = Hands.getActivePlayerHand().apply(tableState);
         return hand.hand().stream()
                 .filter(Card.cardIsKnown())
                 .filter(Card.cardIsDiscardable(tableState))

@@ -38,7 +38,7 @@ public record Hand(List<Card> hand, Integer index) {
 
     @Contract(pure = true)
     public static @NotNull Function<TableState, Card> getCardFromActivePlayer(int cardIndex) {
-        return tableState -> getCard().apply(cardIndex, Hands.getHand().apply(tableState));
+        return tableState -> getCard().apply(cardIndex, Hands.getActivePlayerHand().apply(tableState));
     }
 
     @Contract(pure = true)
@@ -162,7 +162,7 @@ public record Hand(List<Card> hand, Integer index) {
     @Contract(pure = true)
     public static @NotNull Function<TableState, List<Integer>> activeMatches(Predicate<Card> predicate) {
         return tableState -> {
-            List<Card> cards = Hands.getHand().apply(tableState).hand();
+            List<Card> cards = Hands.getActivePlayerHand().apply(tableState).hand();
             return cards.stream().filter(predicate).map(cards::indexOf).collect(Collectors.toList());
         };
     }

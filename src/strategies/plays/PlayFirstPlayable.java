@@ -4,11 +4,6 @@ import models.Card;
 import models.Hand;
 import models.Hands;
 import models.TableState;
-import strategies.Strategy;
-
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class PlayFirstPlayable extends PlayStrategy {
     public PlayFirstPlayable()
@@ -17,7 +12,7 @@ public class PlayFirstPlayable extends PlayStrategy {
 
     @Override
     public Integer getPlayCardIndex(TableState tableState) {
-        Hand hand = Hands.getHand().apply(tableState);
+        Hand hand = Hands.getActivePlayerHand().apply(tableState);
         return hand.hand().stream()
                 .filter(Card.cardIsKnown())
                 .filter(Card.cardIsPlayable(tableState))

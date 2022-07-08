@@ -23,7 +23,7 @@ public record Hands(List<Hand> hands) {
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<TableState, Hand> getHand() {
+    public static @NotNull Function<TableState, Hand> getActivePlayerHand() {
         return tableState -> getHandByIndex(tableState.activePlayerIndex()).apply(tableState);
     }
 
