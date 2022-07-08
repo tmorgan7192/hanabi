@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static game.Game.numPlayers;
 import static models.TableState.updateHand;
@@ -28,18 +29,23 @@ public record Hands(List<Hand> hands) {
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<TableState, Hand> getActivePlayerHand() {
-        return tableState -> getHand(tableState.activePlayerIndex()).apply(tableState);
+    public Stream<Hand> stream(){
+        return this.hands.stream();
     }
 
     @Contract(pure = true)
     public static @NotNull Function<TableState, Hand> getHand(Integer playerIndex) {
         return tableState -> tableState.hands().get(playerIndex);
     }
-
+    
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, Hand> getActivePlayerHand() {
+        return tableState -> getHand(tableState.activePlayerIndex()).apply(tableState);
+    }
+    
     @Contract(pure = true)
     public static @NotNull Function<TableState, List<Hand>> getNonActiveHands() {
-        return tableState -> tableState.hands().hands().stream()
+        return tableState -> tableState.hands().stream()
             .filter(hand -> hand.index() != tableState.activePlayerIndex())
             .sorted(Comparator.comparingInt(hand -> (hand.index() - tableState.activePlayerIndex() + numPlayers) % numPlayers))
             .collect(Collectors.toList());

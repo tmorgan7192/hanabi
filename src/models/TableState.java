@@ -77,7 +77,7 @@ public record TableState(
         builder.append("\n");
 
         for (String hand :
-                this.hands.hands().stream()
+                this.hands.stream()
                         .map(hand -> hand.toString(hand.index() == this.activePlayerIndex))
                         .collect(Collectors.toList())
         ){
@@ -136,7 +136,7 @@ public record TableState(
                 new TableState(
                         tableState.deck(),
                         tableState.discardPile(),
-                        new Hands(tableState.hands().hands().stream()
+                        new Hands(tableState.hands().stream()
                                 .map(hand -> hand.index() == playerIndex ? newHand : hand)
                                 .toList()
                         ),
