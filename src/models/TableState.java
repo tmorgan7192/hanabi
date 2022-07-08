@@ -220,7 +220,7 @@ public record TableState(
                         tableState.cardStacks(),
                         tableState.tokenCount(),
                         tableState.hintCount(),
-                        tableState.deck().deck().isEmpty() ? tableState.otCount() - 1 : tableState.otCount(),
+                        tableState.deck().isEmpty() ? tableState.otCount() - 1 : tableState.otCount(),
                         tableState.activePlayerIndex()
                 );
     }

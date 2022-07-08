@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Random;
 import java.util.Stack;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static game.Util.getNumCards;
 
@@ -39,8 +40,18 @@ public record Deck(Stack<Card> deck) {
     }
 
     @Contract(pure = true)
+    public Stream<Card> stream(){
+        return deck.stream();
+    }
+
+    @Contract(pure = true)
+    public boolean isEmpty(){
+        return deck.isEmpty();
+    }
+
+    @Contract(pure = true)
     public static @Nullable Card getTopCardFromDeck(@NotNull Deck deck) {
-        if (deck.deck().isEmpty()) {
+        if (deck.isEmpty()) {
             return null;
         }
         return deck.deck().peek();
@@ -54,7 +65,7 @@ public record Deck(Stack<Card> deck) {
     @Contract(pure = true)
     public static @NotNull Function<Deck, Deck> doRemoveCardFromDeck() {
         return deck -> {
-            if (deck.deck().isEmpty()) {
+            if (deck.isEmpty()) {
                 return deck;
             }
             Stack<Card> newDeck = (Stack<Card>) deck.deck().clone();

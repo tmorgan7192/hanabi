@@ -179,7 +179,7 @@ public record Card(
 
     @Contract(pure = true)
     public static @NotNull Predicate<Card> cardIsNotSafeToDiscard(TableState tableState) {
-        return card -> tableState.discardPile().deck().stream()
+        return card -> tableState.discardPile().stream()
             .filter(discardedCard -> discardedCard.equals(card))
             .count() + 1 == getNumCards(card.number);
     }
