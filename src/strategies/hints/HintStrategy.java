@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static game.Game.printLogs;
+import static game.Turn.giveHint;
 
 public abstract class HintStrategy implements Strategy {
     protected final int minHints;
@@ -42,7 +43,7 @@ public abstract class HintStrategy implements Strategy {
             if (printLogs) {
                 System.out.println("Giving hint " + knowledge.value() + " to player with index " + knowledge.playerIndex());
             }
-            return TableState.giveHint(knowledge).apply(tableState);
+            return giveHint(knowledge).apply(tableState);
         };
     }
 

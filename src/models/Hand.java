@@ -1,5 +1,8 @@
 package models;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -10,43 +13,58 @@ import java.util.stream.IntStream;
 import static models.Card.getKeys;
 
 public record Hand(List<Card> hand, Integer index) {
+    @Contract(pure = true)
     public String toString(boolean isActive){
         return isActive ? "-> " + hand.toString() : hand.toString();
     }
+
     @Override
+    @Contract(pure = true)
     public String toString() {
         return hand.toString();
     }
 
+    @Contract(pure = true)
     public int size() {
         return hand.size();
     }
 
-    private static BiFunction<String, Hand, Integer> getTraitCount(Knowledge.KnowledgeType type) {
+    @Contract(pure = true)
+    public Card get(int i) { return hand.get(i); }
+    
+    @Contract(pure = true)
+    private static @NotNull BiFunction<String, Hand, Integer> getTraitCount(Knowledge.KnowledgeType type) {
         return (value, hand) -> (int) hand.hand().stream().filter(card -> card.getTrait(type).equals(value)).count();
     }
 
-    public static BiFunction<Integer, TableState, Card> getCardFromActivePlayer() {
-        return (cardIndex, tableState) -> getCard().apply(cardIndex, Hands.getHand().apply(tableState));
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, Card> getCardFromActivePlayer(int cardIndex) {
+        return tableState -> getCard().apply(cardIndex, Hands.getHand().apply(tableState));
     }
 
-    public static BiFunction<Integer, Hand, Card>  getCard() {
-        return (cardIndex, hand) -> hand.hand().get(cardIndex);
+    @Contract(pure = true)
+    public static @NotNull BiFunction<Integer, Hand, Card>  getCard() {
+        return (cardIndex, hand) -> hand.get(cardIndex);
     }
 
-    public static Function<Card, Integer> getCardIndex(Hand hand) {
+    @Contract(pure = true)
+    public static @NotNull Function<Card, Integer> getCardIndex(Hand hand) {
         return card -> hand.hand().indexOf(card);
     }
 
-    public static Function<Hand, Hand> addCardToHand(Card card) {
+    @Contract(pure = true)
+    public static @NotNull Function<Hand, Hand> addCardToHand(Card card) {
         return hand -> {
             List<Card> newHand = hand.hand();
-            newHand.add(card);
+            if (card != null) {
+                newHand.add(card);
+            }
             return new Hand(newHand, hand.index());
         };
     }
 
-    public static Function<Hand, Hand> removeCardFromHand(int cardIndex) {
+    @Contract(pure = true)
+    public static @NotNull Function<Hand, Hand> removeCardFromHand(int cardIndex) {
         return hand -> {
             List<Card> newHand = hand.hand();
             newHand.remove(cardIndex);
@@ -54,7 +72,8 @@ public record Hand(List<Card> hand, Integer index) {
         };
     }
 
-    public static Function<Hand, Hand> bumpTurnsInHand() {
+    @Contract(pure = true)
+    public static @NotNull Function<Hand, Hand> bumpTurnsInHand() {
         return hand -> new Hand(
             hand.hand().stream()
             .map(
@@ -71,7 +90,8 @@ public record Hand(List<Card> hand, Integer index) {
         );
     }
 
-    public static Function<Hand, Hand> updateKnowledge(Knowledge knowledge) {
+    @Contract(pure = true)
+    public static @NotNull Function<Hand, Hand> updateKnowledge(Knowledge knowledge) {
         return hand -> {
             List<Card> newHand = new ArrayList<>();
             Knowledge.Meta meta = Knowledge.checkMetaImplications(knowledge).apply(hand);
@@ -87,7 +107,8 @@ public record Hand(List<Card> hand, Integer index) {
         };
     }
 
-    public static BiFunction<Integer, Hand, Knowledge> knowledgeAppearsGivenNumberOfTimes(
+    @Contract(pure = true)
+    public static @NotNull BiFunction<Integer, Hand, Knowledge> knowledgeAppearsGivenNumberOfTimes(
         Knowledge.KnowledgeType defaultType
     ) {
         return (count, hand) -> {
@@ -98,7 +119,8 @@ public record Hand(List<Card> hand, Integer index) {
         };
     }
 
-    public static BiFunction<Integer, Hand, Knowledge> getKnowledgeWithCount(Knowledge.KnowledgeType type) {
+    @Contract(pure = true)
+    public static @NotNull BiFunction<Integer, Hand, Knowledge> getKnowledgeWithCount(Knowledge.KnowledgeType type) {
         return (count, hand) -> {
             Optional<String> traitWithCorrectCount = getKeys(type).stream()
                     .filter(key -> Objects.equals(getTraitCount(type).apply(key, hand), count))
@@ -107,7 +129,8 @@ public record Hand(List<Card> hand, Integer index) {
         };
     }
 
-    public static Function<Knowledge, List<Card>> getCardsMatchingKnowledge(Hand hand) {
+    @Contract(pure = true)
+    public static @NotNull Function<Knowledge, List<Card>> getCardsMatchingKnowledge(Hand hand) {
         return (knowledge) -> {
             if (knowledge == null) {
                 return null;
@@ -116,23 +139,37 @@ public record Hand(List<Card> hand, Integer index) {
         };
     }
 
-    public static Predicate<TableState> someNonActivesMatch(Predicate<Card> predicate, int minMatch) {
+    @Contract(pure = true)
+    public static @NotNull Function<Knowledge, List<Card>> getCardsNotMatchingKnowledge(Hand hand) {
+        return (knowledge) -> {
+            if (knowledge == null) {
+                return null;
+            }
+            return hand.hand().stream().filter(Card.matchesKnowledge(knowledge).negate()).collect(Collectors.toList());
+        };
+    }
+
+    @Contract(pure = true)
+    public static @NotNull Predicate<TableState> someNonActivesMatch(Predicate<Card> predicate, int minMatch) {
         return tableState -> Hands.getNonActiveHands().apply(tableState).stream()
                 .map(Hand::hand).flatMap(List::stream).filter(predicate).count() >= minMatch;
     }
 
-    public static Predicate<TableState> anyNonActiveMatch(Predicate<Card> predicate) {
+    @Contract(pure = true)
+    public static @NotNull Predicate<TableState> anyNonActiveMatch(Predicate<Card> predicate) {
         return someNonActivesMatch(predicate, 1);
     }
 
-    public static Function<TableState, List<Integer>> activeMatches(Predicate<Card> predicate) {
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, List<Integer>> activeMatches(Predicate<Card> predicate) {
         return tableState -> {
             List<Card> cards = Hands.getHand().apply(tableState).hand();
             return cards.stream().filter(predicate).map(cards::indexOf).collect(Collectors.toList());
         };
     }
 
-    public static Function<TableState, Integer> firstActiveMatch(Predicate<Card> predicate) {
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, Integer> firstActiveMatch(Predicate<Card> predicate) {
         return tableState -> {
             List<Integer> matches = activeMatches(predicate).apply(tableState);
             if (!matches.isEmpty()){
@@ -142,14 +179,18 @@ public record Hand(List<Card> hand, Integer index) {
         };
     }
 
-    public static Predicate<TableState> someActivesMatch(Predicate<Card> predicate, int minMatch) {
+    @Contract(pure = true)
+    public static @NotNull Predicate<TableState> someActivesMatch(Predicate<Card> predicate, int minMatch) {
         return tableState -> activeMatches(predicate).apply(tableState).size() >= minMatch;
     }
-    public static Predicate<TableState> anyActiveMatch(Predicate<Card> predicate) {
+
+    @Contract(pure = true)
+    public static @NotNull Predicate<TableState> anyActiveMatch(Predicate<Card> predicate) {
         return someActivesMatch(predicate, 1);
     }
 
-    public static Predicate<Hand> knowledgeIsKnown(Knowledge knowledge) {
+    @Contract(pure = true)
+    public static @NotNull Predicate<Hand> knowledgeIsKnown(Knowledge knowledge) {
         return hand -> hand.hand().stream().allMatch(card -> card.getKnowledgeMap(knowledge.type()).get(knowledge.value()) != null);
     }
 

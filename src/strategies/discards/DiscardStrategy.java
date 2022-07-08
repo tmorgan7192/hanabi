@@ -1,5 +1,6 @@
 package strategies.discards;
 
+import game.Turn;
 import models.Card;
 import models.Hand;
 import models.Knowledge;
@@ -10,6 +11,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static game.Game.printLogs;
+import static game.Turn.discardCard;
 import static models.TableState.MAX_HINT_COUNT;
 
 public abstract class DiscardStrategy implements Strategy {
@@ -26,7 +28,7 @@ public abstract class DiscardStrategy implements Strategy {
 
     private Predicate<TableState> checkMeta() {
         return tableState -> Card.metaMightBe(Knowledge.Meta.DISCARD).test(
-            Hand.getCardFromActivePlayer().apply(getDiscardCardIndex(tableState), tableState)
+            Hand.getCardFromActivePlayer(getDiscardCardIndex(tableState)).apply(tableState)
         );
     }
 
@@ -36,7 +38,7 @@ public abstract class DiscardStrategy implements Strategy {
             if (printLogs) {
                 System.out.println("Discarding card with index " + index);
             }
-            return TableState.discardCard(index).apply(tableState);
+            return discardCard(index).apply(tableState);
         };
     }
 

@@ -1,5 +1,8 @@
 package models;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -7,6 +10,11 @@ import java.util.stream.Collectors;
 
 import static game.Game.numPlayers;
 import static game.Util.getNumCards;
+import static models.CardStacks.addCardToStack;
+import static models.CardStacks.initializeCardStacks;
+import static models.Deck.*;
+import static models.Hand.getCardFromActivePlayer;
+import static models.Hands.*;
 
 public record TableState(
     Deck deck, 
@@ -18,12 +26,39 @@ public record TableState(
     int otCount, 
     int activePlayerIndex
 ) {
-
     public static final int MAX_TOKEN_COUNT = 3;
     public static final int MAX_HINT_COUNT = 8;
 
+    @Contract("_, _ -> new")
+    public static @NotNull TableState initializeTable(int numPlayers, Deck deck) throws IllegalArgumentException {
+        int numCards = getNumCards(numPlayers);
+
+        List<Hand> hands = new ArrayList<>();
+        for (int playerIndex = 0; playerIndex < numPlayers; ++playerIndex) {
+            List<Card> hand = new ArrayList<>();
+            for (int cardIndex = 0; cardIndex < numCards; ++cardIndex) {
+                Card card = getTopCardFromDeck(deck);
+                deck = doRemoveCardFromDeck().apply(deck);
+                hand.add(card);
+            }
+            hands.add(new Hand(hand, playerIndex));
+        }
+
+        return new TableState(
+            deck,
+            initializeDiscardPile(),
+            new Hands(hands),
+            initializeCardStacks(),
+            MAX_TOKEN_COUNT,
+            MAX_HINT_COUNT,
+            numPlayers,
+                0
+        );
+    }
+
     @Override
-    public String toString() {
+    @Contract(pure = true)
+    public @NotNull String toString() {
         StringBuilder builder = new StringBuilder("\nDeck size: ")
                 .append(this.deck.size())
                 .append("\nDiscard size: ")
@@ -33,8 +68,8 @@ public record TableState(
                 .append("\nTokens: ")
                 .append(this.tokenCount)
                 .append("\n\nStacks: ");
-        for (String stack: this.cardStacks.cardStacks().entrySet().stream()
-                .map(entry -> entry.getKey().toString().substring(0, 1) + this.cardStacks.topOfCardStack().apply(entry.getKey()))
+        for (String stack: this.cardStacks.cardStacks().keySet().stream()
+                .map(cards -> cards.toString().substring(0, 1) + this.cardStacks.topOfCardStack().apply(cards))
                 .collect(Collectors.toList())
         ) {
             builder.append(stack).append(" ");
@@ -43,119 +78,175 @@ public record TableState(
 
         for (String hand :
                 this.hands.hands().stream()
-                .map(hand -> hand.toString(hand.index() == this.activePlayerIndex))
-                .collect(Collectors.toList())
+                        .map(hand -> hand.toString(hand.index() == this.activePlayerIndex))
+                        .collect(Collectors.toList())
         ){
             builder.append("\n").append(hand);
         }
         return builder.append("\n").toString();
     }
-    public static TableState initializeTable(int numPlayers, Deck deck) throws IllegalArgumentException {
-        int numCards = getNumCards(numPlayers);
 
-        List<Hand> hands = new ArrayList<>();
-        for (int playerIndex = 0; playerIndex < numPlayers; ++playerIndex) {
-            List<Card> hand = new ArrayList<>();
-            for (int cardIndex = 0; cardIndex < numCards; ++cardIndex) {
-                Card card = Deck.getTopCardFromDeck(deck);
-                deck = Deck.removeCardFromDeck().apply(deck);
-                hand.add(card);
-            }
-            hands.add(new Hand(hand, playerIndex));
-        }
-
-        return new TableState(
-            deck,
-            Deck.initializeDiscardPile(),
-            new Hands(hands),
-            CardStacks.initializeCardStacks(),
-            MAX_TOKEN_COUNT,
-            MAX_HINT_COUNT,
-            numPlayers,
-                0
-        );
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> updateKnowledge(Knowledge knowledge) {
+        return mapWithIndex(Hand.updateKnowledge(knowledge), knowledge.playerIndex());
     }
 
-    public static Function<TableState, TableState> drawCard() {
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> drawCard() {
+        return addCardToHand(getTopCardFromDeck()).andThen(removeCardFromDeck());
+    }
+
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> doDiscardCard(int cardIndex) {
+        return addCardToDiscardPile(cardIndex).andThen(removeCardFromHand(cardIndex));
+    }
+
+    @Contract(pure = true)
+    private static @NotNull Function<TableState, TableState> removeCardFromDeck() {
         return tableState -> new TableState(
-                Deck.removeCardFromDeck().apply(tableState.deck()),
+                doRemoveCardFromDeck().apply(tableState.deck()),
                 tableState.discardPile(),
-                Hands.addCardToHand(Deck.getTopCardFromDeck(tableState.deck())).apply(tableState),
+                tableState.hands(),
                 tableState.cardStacks(),
                 tableState.tokenCount(),
                 tableState.hintCount(),
-                tableState.otCount,
-            (tableState.activePlayerIndex + 1) % numPlayers
+                tableState.otCount(),
+                (tableState.activePlayerIndex())
         );
     }
 
-    public static Function<TableState, TableState> andThenDraw(Function<TableState, TableState> function) {
-        return tableState -> !tableState.deck.deck().isEmpty()
-                ? function.andThen(drawCard()).apply(tableState)
-                : function.apply(tableState);
-    }
-
-    public static Function<TableState, TableState> discardCard(int cardIndex) {
-        return andThenDraw(doDiscardCard(cardIndex));
-    }
-
-    public static Function<TableState, TableState> doDiscardCard(int cardIndex) {
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> addCardToDiscardPile(int cardIndex) {
         return tableState ->
                 new TableState(
                         tableState.deck(),
-                        Deck.addCardToDeck(
-                            Hand.getCardFromActivePlayer().apply(cardIndex, tableState)
-                        ).apply(tableState.discardPile()),
-                        Hands.removeCardFromHand(cardIndex).apply(tableState),
+                        addCardToDeck(getCardFromActivePlayer(cardIndex).apply(tableState)).apply(tableState.discardPile()),
+                        tableState.hands(),
                         tableState.cardStacks(),
                         tableState.tokenCount(),
-                        Math.min(tableState.hintCount() + 1, MAX_HINT_COUNT),
-                        decrementOtCount(tableState.deck).apply(tableState.otCount),
-                        tableState.activePlayerIndex
+                        tableState.hintCount(),
+                        tableState.otCount(),
+                        tableState.activePlayerIndex()
                 );
     }
 
-    public static Function<TableState, TableState> playCard(int cardIndex) {
-        return andThenDraw(doPlayCard(cardIndex));
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> updateHand(Hand newHand, int playerIndex) {
+        return tableState ->
+                new TableState(
+                        tableState.deck(),
+                        tableState.discardPile(),
+                        new Hands(tableState.hands().hands().stream()
+                                .map(hand -> hand.index() == playerIndex ? newHand : hand)
+                                .toList()
+                        ),
+                        tableState.cardStacks(),
+                        tableState.tokenCount(),
+                        tableState.hintCount(),
+                        tableState.otCount(),
+                        (tableState.activePlayerIndex())
+                );
     }
 
-    public static Function<TableState, TableState> doPlayCard(int cardIndex) {
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> attemptPlayCard(int cardIndex) {
         return tableState -> {
-            Card card = Hand.getCardFromActivePlayer().apply(cardIndex, tableState);
+            Card card = getCardFromActivePlayer(cardIndex).apply(tableState);
             boolean isLegalPlay = tableState.cardStacks().isLegalPlay().test(card);
+            Function<TableState, TableState> moveCardFromHand = isLegalPlay
+                    ? updateCardStacks(addCardToStack().apply(card, tableState.cardStacks()))
+                    : addCardToDiscardPile(cardIndex).andThen(decrementTokenCount());
+            return moveCardFromHand.andThen(removeCardFromHand(cardIndex)).apply(tableState);
+        };
+    }
 
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> updateCardStacks(CardStacks newCardStacks) {
+        return tableState ->
+                new TableState(
+                        tableState.deck(),
+                        tableState.discardPile(),
+                        tableState.hands(),
+                        newCardStacks,
+                        tableState.tokenCount(),
+                        tableState.hintCount(),
+                        tableState.otCount(),
+                        tableState.activePlayerIndex()
+                );
+    }
+
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> decrementTokenCount() {
+        return tableState ->
+                new TableState(
+                        tableState.deck(),
+                        tableState.discardPile(),
+                        tableState.hands(),
+                        tableState.cardStacks(),
+                        tableState.tokenCount() - 1,
+                        tableState.hintCount(),
+                        tableState.otCount(),
+                        tableState.activePlayerIndex()
+                );
+    }
+
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> updateHintCount(int delta) {
+        return tableState -> {
+            int newHintCount = Math.min(tableState.hintCount() + delta, MAX_HINT_COUNT);
+            if (newHintCount < 0) {
+                throw new IllegalStateException("Can only give hint if there are hints available");
+            }
             return new TableState(
                     tableState.deck(),
-                    Deck.addCardToDeck(card).apply(tableState.discardPile()),
-                    Hands.removeCardFromHand(cardIndex).apply(tableState),
-                    isLegalPlay ? CardStacks.addCardToStack().apply(card, tableState.cardStacks()) : tableState.cardStacks(),
-                    isLegalPlay ? tableState.tokenCount() : tableState.tokenCount() - 1,
-                    tableState.hintCount(),
-                    decrementOtCount(tableState.deck).apply(tableState.otCount),
+                    tableState.discardPile(),
+                    tableState.hands(),
+                    tableState.cardStacks(),
+                    tableState.tokenCount(),
+                    newHintCount,
+                    tableState.otCount(),
                     tableState.activePlayerIndex()
             );
         };
     }
 
-    public static Function<TableState, TableState> giveHint(Knowledge knowledge) {
-        return tableState -> {
-            if (tableState.hintCount() == 0) {
-                throw new IllegalStateException("Can only give hint if there are hints available");
-            }
-            return new TableState(
-                tableState.deck(),
-                tableState.discardPile(),
-                Hands.updateKnowledge(knowledge).apply(tableState),
-                tableState.cardStacks(),
-                tableState.tokenCount(),
-                tableState.hintCount() - 1,
-                decrementOtCount(tableState.deck).apply(tableState.otCount),
-                (tableState.activePlayerIndex() + 1) % numPlayers
-            );
-        };
+    @Contract(pure = true)
+    private static @NotNull Function<TableState, TableState> updateOtCount() {
+        return tableState ->
+                new TableState(
+                        tableState.deck(),
+                        tableState.discardPile(),
+                        tableState.hands(),
+                        tableState.cardStacks(),
+                        tableState.tokenCount(),
+                        tableState.hintCount(),
+                        tableState.deck().deck().isEmpty() ? tableState.otCount() - 1 : tableState.otCount(),
+                        tableState.activePlayerIndex()
+                );
     }
 
-    public static Function<Integer, Integer> decrementOtCount(Deck deck) {
-        return otCount -> deck.deck().isEmpty() ? otCount - 1 : otCount;
+    @Contract(pure = true)
+    private static @NotNull Function<TableState, TableState> incrementActivePlayerIndex() {
+        return tableState ->
+                new TableState(
+                        tableState.deck(),
+                        tableState.discardPile(),
+                        tableState.hands(),
+                        tableState.cardStacks(),
+                        tableState.tokenCount(),
+                        tableState.hintCount(),
+                        tableState.otCount(),
+                        (tableState.activePlayerIndex() + 1) % numPlayers
+                );
+    }
+
+    @Contract(pure = true)
+    private static @NotNull Function<TableState, TableState> bumpTurnsInHand() {
+        return map(Hand.bumpTurnsInHand());
+    }
+
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, TableState> endTurn() {
+        return bumpTurnsInHand().andThen(updateOtCount()).andThen(incrementActivePlayerIndex());
     }
 }

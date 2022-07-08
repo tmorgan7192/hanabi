@@ -3,28 +3,33 @@ package game;
 import models.CardStacks;
 import models.Knowledge;
 import models.TableState;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
-
 public class Util {
-
-    public static Predicate<TableState> gameOver() {
+    @Contract(pure = true)
+    public static @NotNull Predicate<TableState> gameOver() {
         return tableState -> loseGameByExplosion().or(loseGameByOt()).or(winGame()).test(tableState);
     }
 
-    public static Predicate<TableState> winGame() {
+    @Contract(pure = true)
+    public static @NotNull Predicate<TableState> winGame() {
         return tableState -> CardStacks.getScore().apply(tableState).equals(25);
     }
 
-    public static Predicate<TableState> loseGameByExplosion() {
+    @Contract(pure = true)
+    public static @NotNull Predicate<TableState> loseGameByExplosion() {
         return tableState -> tableState.tokenCount() == 0;
     }
 
-    public static Predicate<TableState> loseGameByOt() {
+    @Contract(pure = true)
+    public static @NotNull Predicate<TableState> loseGameByOt() {
         return tableState -> tableState.otCount() == 0;
     }
 
+    @Contract(pure = true)
     public static int getNumCards(int numPlayers) {
         return switch (numPlayers) {
             case 2, 3 -> 4;
@@ -33,6 +38,7 @@ public class Util {
         };
     }
 
+    @Contract(pure = true)
     public static int getNumCards(Knowledge.CardNumber number) {
         return switch (number) {
             case ONE -> 3;

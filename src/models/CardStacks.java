@@ -1,5 +1,8 @@
 package models;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -7,7 +10,8 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 public record CardStacks(Map<Knowledge.Color, Stack<Card>> cardStacks) {
-    public static CardStacks initializeCardStacks(){
+    @Contract(" -> new")
+    public static @NotNull CardStacks initializeCardStacks(){
         Map<Knowledge.Color, Stack<Card>> cardStacks = new HashMap<>();
         for (Knowledge.Color color : Knowledge.Color.values()){
             cardStacks.put(color, new Stack<>());
@@ -15,22 +19,18 @@ public record CardStacks(Map<Knowledge.Color, Stack<Card>> cardStacks) {
         return new CardStacks(cardStacks);
     }
 
-    public Function<Knowledge.Color, Integer> topOfCardStack() {
+    @Contract(pure = true)
+    public @NotNull Function<Knowledge.Color, Integer> topOfCardStack() {
         return color -> cardStacks.get(color).size();
     }
 
-    public Predicate<Knowledge.Color> stackIsFull() {
-        return color -> topOfCardStack().apply(color) == 5;
-    }
-    public static Predicate<CardStacks> stacksAreFull() {
-        return cardStacks -> Arrays.stream(Knowledge.Color.values()).allMatch(cardStacks.stackIsFull());
-    }
-
-    public Predicate<Card> isLegalPlay() {
+    @Contract(pure = true)
+    public @NotNull Predicate<Card> isLegalPlay() {
         return card -> topOfCardStack().apply(card.color()) == card.getNumber() - 1;
     }
 
-    public static BiFunction<Card, CardStacks, CardStacks> addCardToStack(){
+    @Contract(pure = true)
+    public static @NotNull BiFunction<Card, CardStacks, CardStacks> addCardToStack(){
         return (card, cardStacks) -> {
             Map<Knowledge.Color, Stack<Card>> newMap = new HashMap<>();
             for (Knowledge.Color color : Knowledge.Color.values()) {
@@ -45,7 +45,8 @@ public record CardStacks(Map<Knowledge.Color, Stack<Card>> cardStacks) {
         };
     }
 
-    public static Function<TableState, Integer> getScore() {
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, Integer> getScore() {
         return tableState -> IntStream.range(0,5).reduce(
                 0,
                 (subtotal, ordinal) ->

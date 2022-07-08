@@ -1,5 +1,6 @@
 package strategies.plays;
 
+import game.Turn;
 import models.*;
 import strategies.Strategy;
 
@@ -8,6 +9,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static game.Game.printLogs;
+import static game.Turn.playCard;
 import static models.TableState.MAX_HINT_COUNT;
 
 public abstract class PlayStrategy implements Strategy {
@@ -24,13 +26,13 @@ public abstract class PlayStrategy implements Strategy {
             if (printLogs) {
                 System.out.println("Playing card with index " + index);
             }
-            return TableState.playCard(index).apply(tableState);
+            return playCard(index).apply(tableState);
         };
     }
 
     private Predicate<TableState> checkMeta() {
         return tableState -> Card.metaMightBe(Knowledge.Meta.PLAY).test(
-            Hand.getCardFromActivePlayer().apply(getPlayCardIndex(tableState), tableState)
+            Hand.getCardFromActivePlayer(getPlayCardIndex(tableState)).apply(tableState)
         );
     }
 

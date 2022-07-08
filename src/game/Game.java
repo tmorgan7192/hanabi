@@ -2,6 +2,7 @@ package game;
 
 import metaStrategies.CardCountMeta;
 import metaStrategies.MetaStrategy;
+import metaStrategies.SafeToDiscardMeta;
 import models.CardStacks;
 import models.Deck;
 import models.Knowledge;
@@ -24,8 +25,8 @@ import java.util.List;
 
 public class Game {
     public static final int numPlayers = 4;
-    public static final int numGames = 1000;
-    public static final boolean printLogs = false;
+    public static final int numGames = 1;
+    public static final boolean printLogs = true;
     public static List<Integer> scores = new ArrayList<>();
     public static final List<Strategy> strategies = List.of(
         new DiscardFirstDiscardable(),
@@ -67,6 +68,17 @@ public class Game {
             tableState = takeTurn(tableState);
             if (printLogs) {
                 System.out.println(tableState);
+            }
+        }
+        if (printLogs) {
+            if (Util.loseGameByExplosion().test(tableState)) {
+                System.out.println("BOOM!  You lose");
+            }
+            else if (Util.loseGameByOt().test(tableState)) {
+                System.out.println("Ran out of time.  You lose!");
+            }
+            else if (Util.winGame().test(tableState)) {
+                System.out.println("Congratulations! You won!");
             }
         }
         scores.add(CardStacks.getScore().apply(tableState));

@@ -1,5 +1,9 @@
 package models;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Random;
 import java.util.Stack;
 import java.util.function.Function;
@@ -7,10 +11,8 @@ import java.util.function.Function;
 import static game.Util.getNumCards;
 
 public record Deck(Stack<Card> deck) {
-    public int size() {
-        return deck.size();
-    }
-    public static Deck initializeDeck() {
+    @Contract(" -> new")
+    public static @NotNull Deck initializeDeck() {
         Stack<Card> deck = new Stack<>();
         Random random = new Random();
         int index = 0;
@@ -26,22 +28,34 @@ public record Deck(Stack<Card> deck) {
         return new Deck(deck);
     }
 
-
-    public static Deck initializeDiscardPile() {
+    @Contract(" -> new")
+    public static @NotNull Deck initializeDiscardPile() {
         return new Deck(new Stack<>());
     }
 
-    public static Card getTopCardFromDeck(Deck deck) {
+    @Contract(pure = true)
+    public int size() {
+        return deck.size();
+    }
+
+    @Contract(pure = true)
+    public static @Nullable Card getTopCardFromDeck(@NotNull Deck deck) {
         if (deck.deck().isEmpty()) {
-            throw new IllegalStateException("Should not call getTopCardFromDeck for empty deck");
+            return null;
         }
         return deck.deck().peek();
     }
 
-    public static Function<Deck, Deck> removeCardFromDeck() {
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, Card> getTopCardFromDeck() {
+        return tableState -> getTopCardFromDeck(tableState.deck());
+    }
+
+    @Contract(pure = true)
+    public static @NotNull Function<Deck, Deck> doRemoveCardFromDeck() {
         return deck -> {
             if (deck.deck().isEmpty()) {
-                throw new IllegalStateException("Should not call getTopCardFromDeck for empty deck");
+                return deck;
             }
             Stack<Card> newDeck = (Stack<Card>) deck.deck().clone();
             newDeck.pop();
@@ -49,7 +63,8 @@ public record Deck(Stack<Card> deck) {
         };
     }
 
-    public static Function<Deck, Deck> addCardToDeck(Card card) {
+    @Contract(pure = true)
+    public static @NotNull Function<Deck, Deck> addCardToDeck(Card card) {
         return deck -> {
             Stack<Card> newDeck = deck.deck();
             newDeck.add(card);
@@ -57,5 +72,4 @@ public record Deck(Stack<Card> deck) {
         };
 
     }
-
 }

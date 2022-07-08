@@ -1,5 +1,8 @@
 package models;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -14,25 +17,31 @@ public record Card(
     Knowledge.Meta meta,
     int numberOfTurnsInHand
 ) {
+    @Contract("_, _ -> new")
+    public static @NotNull Card createCard(Knowledge.Color color, Knowledge.CardNumber number) {
+        return new Card(color, number, initializeKnowledgeMap(), null, 0);
+    }
+
     @Override
-    public String toString() {
+    @Contract(pure = true)
+    public @NotNull String toString() {
         return this.color().toString().substring(0, 1)
             + this.getNumber()
             + this.knowledgeToString(Knowledge.KnowledgeType.COLOR)
             + this.knowledgeToString(Knowledge.KnowledgeType.NUMBER)
-                + Knowledge.metaToString(this.meta);
+            + Knowledge.metaToString(this.meta)
+            + ", in hand: "
+            + this.numberOfTurnsInHand;
     }
 
     @Override
+    @Contract(pure = true)
     public boolean equals(Object card) {
         return card instanceof Card && this.color == ((Card)card).color && this.number == ((Card)card).number;
     }
 
-    public static Card createCard(Knowledge.Color color, Knowledge.CardNumber number) {
-        return new Card(color, number, initializeKnowledgeMap(), null, 0);
-    }
-
-    public static Map<Knowledge.KnowledgeType, Map<String, Boolean>> initializeKnowledgeMap() {
+    @Contract(pure = true)
+    public static @NotNull Map<Knowledge.KnowledgeType, Map<String, Boolean>> initializeKnowledgeMap() {
         Map<Knowledge.KnowledgeType, Map<String, Boolean>> knowledgeMap = new HashMap<>();
         Map<String, Boolean> colorMap = new HashMap<>();
         Map<String, Boolean> numberMap = new HashMap<>();
@@ -51,10 +60,12 @@ public record Card(
         return knowledgeMap;
     }
 
+    @Contract(pure = true)
     public String getTrait(Knowledge.KnowledgeType type) {
         return type == Knowledge.KnowledgeType.COLOR ? this.color().toString() : this.number.toString();
     }
 
+    @Contract(pure = true)
     public static List<String> getKeys(Knowledge.KnowledgeType type) {
         return switch (type) {
             case COLOR -> Arrays.stream(Knowledge.Color.values()).map(Enum::toString).toList();
@@ -62,21 +73,26 @@ public record Card(
         };
     }
 
+    @Contract(pure = true)
     public int getNumber() {
         return this.number.ordinal() + 1;
     }
 
-    public static Predicate<Card> matchesKnowledge(Knowledge knowledge){
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> matchesKnowledge(Knowledge knowledge){
         return card ->
             (knowledge.type().equals(Knowledge.KnowledgeType.COLOR) && card.color().toString().equals(knowledge.value())) ||
             (knowledge.type().equals(Knowledge.KnowledgeType.NUMBER) && card.number().toString().equals(knowledge.value()));
 
     }
+
+    @Contract(pure = true)
     public Map<String, Boolean> getKnowledgeMap(Knowledge.KnowledgeType type) {
         return this.knowledgeMap.get(type);
     }
 
-    public String knowledgeToString(Knowledge.KnowledgeType type) {
+    @Contract(pure = true)
+    public @NotNull String knowledgeToString(Knowledge.KnowledgeType type) {
         Map<String, Boolean> typedKnowledgeMap = this.knowledgeMap.get(type);
         if (typedKnowledgeMap.containsValue(true)) {
             List<String> keys = typedKnowledgeMap.entrySet().stream()
@@ -104,7 +120,8 @@ public record Card(
             return "";
     }
 
-    public static Function<Card, Card> updateKnowledge(Knowledge knowledge) {
+    @Contract(pure = true)
+    public static @NotNull Function<Card, Card> updateKnowledge(Knowledge knowledge) {
         return card -> {
             Map<String, Boolean> typedKnowledgeMap = new HashMap<>();
             for (String key: Card.getKeys(knowledge.type())){
@@ -132,7 +149,8 @@ public record Card(
         };
     }
 
-    public static Function<Card, Card> updateMeta(Knowledge.Meta meta) {
+    @Contract(pure = true)
+    public static @NotNull Function<Card, Card> updateMeta(Knowledge.Meta meta) {
         return card -> new Card(
             card.color(),
             card.number(),
@@ -142,37 +160,46 @@ public record Card(
         );
     }
 
-    public static Predicate<Card> cardIsKnown(Knowledge.KnowledgeType type) {
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> cardIsKnown(Knowledge.KnowledgeType type) {
         return card -> card.knowledgeMap().get(type).containsValue(true);
     }
 
-    public static Predicate<Card> cardIsKnown() {
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> cardIsKnown() {
         return card -> cardIsKnown(Knowledge.KnowledgeType.NUMBER).test(card) &&
                 cardIsKnown(Knowledge.KnowledgeType.COLOR).test(card);
     }
-    public static Predicate<Card> cardIsPlayable(TableState tableState){
+
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> cardIsPlayable(TableState tableState){
         return card -> card.getNumber() == tableState.cardStacks().topOfCardStack().apply(card.color()) + 1;
     }
 
-    public static Predicate<Card> cardIsDiscardable(TableState tableState){
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> cardIsDiscardable(TableState tableState){
         return card -> card.getNumber() <= tableState.cardStacks().topOfCardStack().apply(card.color());
     }
 
-    public static Predicate<Card> cardIsNotSafeToDiscard(TableState tableState) {
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> cardIsNotSafeToDiscard(TableState tableState) {
         return card -> tableState.discardPile().deck().stream()
             .filter(discardedCard -> discardedCard.equals(card))
             .count() + 1 == getNumCards(card.number);
     }
 
-    public static Predicate<Card> metaIsNotNull() {
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> metaIsNotNull() {
         return card -> card.meta != null;
     }
 
-    public static Predicate<Card> metaEquals(Knowledge.Meta meta) {
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> metaEquals(Knowledge.Meta meta) {
         return metaMightBe(meta).and(metaIsNotNull());
     }
 
-    public static Predicate<Card> metaMightBe(Knowledge.Meta meta) {
+    @Contract(pure = true)
+    public static @NotNull Predicate<Card> metaMightBe(Knowledge.Meta meta) {
         return card -> card.meta == null || card.meta.equals(meta);
     }
 }
