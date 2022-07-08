@@ -8,6 +8,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static models.Card.getKeys;
 
@@ -30,10 +31,15 @@ public record Hand(List<Card> hand, Integer index) {
 
     @Contract(pure = true)
     public Card get(int i) { return hand.get(i); }
+
+    @Contract(pure = true)
+    public Stream<Card> stream(){
+        return hand.stream();
+    }
     
     @Contract(pure = true)
     private static @NotNull BiFunction<String, Hand, Integer> getTraitCount(Knowledge.KnowledgeType type) {
-        return (value, hand) -> (int) hand.hand().stream().filter(card -> card.getTrait(type).equals(value)).count();
+        return (value, hand) -> (int) hand.stream().filter(card -> card.getTrait(type).equals(value)).count();
     }
 
     @Contract(pure = true)
@@ -74,7 +80,7 @@ public record Hand(List<Card> hand, Integer index) {
     @Contract(pure = true)
     public static @NotNull Function<Hand, Hand> bumpTurnsInHand() {
         return hand -> new Hand(
-            hand.hand().stream()
+            hand.stream()
             .map(
                 card -> new Card(
                     card.color(),
@@ -134,7 +140,7 @@ public record Hand(List<Card> hand, Integer index) {
             if (knowledge == null) {
                 return null;
             }
-            return hand.hand().stream().filter(Card.matchesKnowledge(knowledge)).collect(Collectors.toList());
+            return hand.stream().filter(Card.matchesKnowledge(knowledge)).collect(Collectors.toList());
         };
     }
 
@@ -144,7 +150,7 @@ public record Hand(List<Card> hand, Integer index) {
             if (knowledge == null) {
                 return null;
             }
-            return hand.hand().stream().filter(Card.matchesKnowledge(knowledge).negate()).collect(Collectors.toList());
+            return hand.stream().filter(Card.matchesKnowledge(knowledge).negate()).collect(Collectors.toList());
         };
     }
 
@@ -190,7 +196,7 @@ public record Hand(List<Card> hand, Integer index) {
 
     @Contract(pure = true)
     public static @NotNull Predicate<Hand> knowledgeIsKnown(Knowledge knowledge) {
-        return hand -> hand.hand().stream().allMatch(card -> card.getKnowledgeMap(knowledge.type()).get(knowledge.value()) != null);
+        return hand -> hand.stream().allMatch(card -> card.getKnowledgeMap(knowledge.type()).get(knowledge.value()) != null);
     }
 
 }

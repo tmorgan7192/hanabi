@@ -24,7 +24,7 @@ public class HintFirstDiscardable extends HintStrategy {
     public Function<TableState, Knowledge> getHintKnowledge() {
         return tableState -> {
             for (Hand hand: Hands.getNonActiveHands().apply(tableState)) {
-                Optional<Card> firstDiscardableCard = hand.hand().stream()
+                Optional<Card> firstDiscardableCard = hand.stream()
                     .filter(Card.cardIsDiscardable(tableState))
                     .findFirst();
                 if (firstDiscardableCard.isPresent()) {

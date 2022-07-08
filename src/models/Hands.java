@@ -25,12 +25,12 @@ public record Hands(List<Hand> hands) {
 
     @Contract(pure = true)
     public Hand get(int playerIndex){
-        return this.hands.get(playerIndex);
+        return hands.get(playerIndex);
     }
 
     @Contract(pure = true)
     public Stream<Hand> stream(){
-        return this.hands.stream();
+        return hands.stream();
     }
 
     @Contract(pure = true)

@@ -27,7 +27,7 @@ public class HintLowestPlayable extends HintStrategy {
     public Function<TableState, Knowledge> getHintKnowledge() {
         return tableState -> {
             for (Hand hand: Hands.getNonActiveHands().apply(tableState)) {
-                Optional<Card> firstPlayableCard = hand.hand().stream()
+                Optional<Card> firstPlayableCard = hand.stream()
                     .filter(Card.cardIsPlayable(tableState))
                     .min(Comparator.comparing(Card::getNumber));
                 if (firstPlayableCard.isPresent()) {

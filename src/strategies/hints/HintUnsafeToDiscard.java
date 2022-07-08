@@ -24,7 +24,7 @@ public class HintUnsafeToDiscard extends HintStrategy {
     public Function<TableState, Knowledge> getHintKnowledge() {
         return tableState -> {
             for (Hand hand: Hands.getNonActiveHands().apply(tableState)) {
-                Optional<Card> firstNonDiscardableCard = hand.hand().stream()
+                Optional<Card> firstNonDiscardableCard = hand.stream()
                     .filter(Card.cardIsNotSafeToDiscard(tableState))
                     .findFirst();
                 if (firstNonDiscardableCard.isPresent()) {

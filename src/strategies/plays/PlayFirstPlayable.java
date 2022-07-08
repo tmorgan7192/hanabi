@@ -13,7 +13,7 @@ public class PlayFirstPlayable extends PlayStrategy {
     @Override
     public Integer getPlayCardIndex(TableState tableState) {
         Hand hand = Hands.getActivePlayerHand().apply(tableState);
-        return hand.hand().stream()
+        return hand.stream()
                 .filter(Card.cardIsKnown())
                 .filter(Card.cardIsPlayable(tableState))
                 .map(Hand.getCardIndex(hand)).findAny().orElse(null);
