@@ -23,13 +23,18 @@ public record Hands(List<Hand> hands) {
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<TableState, Hand> getActivePlayerHand() {
-        return tableState -> getHandByIndex(tableState.activePlayerIndex()).apply(tableState);
+    public Hand get(int playerIndex){
+        return this.hands.get(playerIndex);
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<TableState, Hand> getHandByIndex(Integer index) {
-        return tableState -> tableState.hands().hands().get(index);
+    public static @NotNull Function<TableState, Hand> getActivePlayerHand() {
+        return tableState -> getHand(tableState.activePlayerIndex()).apply(tableState);
+    }
+
+    @Contract(pure = true)
+    public static @NotNull Function<TableState, Hand> getHand(Integer playerIndex) {
+        return tableState -> tableState.hands().get(playerIndex);
     }
 
     @Contract(pure = true)
@@ -58,7 +63,7 @@ public record Hands(List<Hand> hands) {
     @Contract(pure = true)
     public static @NotNull Function<TableState, TableState> mapWithIndex(Function<Hand, Hand> function, int playerIndex) {
         return tableState -> updateHand(
-            function.apply(Hands.getHandByIndex(playerIndex).apply(tableState)), playerIndex
+            function.apply(Hands.getHand(playerIndex).apply(tableState)), playerIndex
         ).apply(tableState);
     }
 }

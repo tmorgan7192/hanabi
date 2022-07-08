@@ -28,7 +28,7 @@ public abstract class HintStrategy implements Strategy {
             if (knowledge == null) {
                 return false;
             }
-            Hand hand = Hands.getHandByIndex(knowledge.playerIndex()).apply(tableState);
+            Hand hand = Hands.getHand(knowledge.playerIndex()).apply(tableState);
             return !Hand.knowledgeIsKnown(knowledge).test(hand);
         };
     }
