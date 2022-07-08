@@ -5,9 +5,6 @@ import models.Hand;
 import models.Hands;
 import models.TableState;
 
-import java.util.Optional;
-import java.util.function.Predicate;
-
 public class DiscardFirstDiscardable extends DiscardStrategy {
     public DiscardFirstDiscardable()
     {

@@ -34,7 +34,8 @@ public record Knowledge(KnowledgeType type, String value, int playerIndex) {
 
     public enum Meta {
         PLAY,
-        DISCARD
+        DISCARD,
+        SAVE
     }
 
     @Contract(pure = true)
@@ -51,6 +52,7 @@ public record Knowledge(KnowledgeType type, String value, int playerIndex) {
         return switch (meta) {
             case PLAY -> " P";
             case DISCARD -> " D";
+            case SAVE -> "S";
         };
     }
 

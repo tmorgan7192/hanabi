@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 public class Util {
     @Contract(pure = true)
     public static @NotNull Predicate<TableState> gameOver() {
-        return tableState -> loseGameByExplosion().or(loseGameByOt()).or(winGame()).test(tableState);
+        return loseGameByExplosion().or(loseGameByOt()).or(winGame());
     }
 
     @Contract(pure = true)

@@ -116,7 +116,7 @@ public record TableState(
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<TableState, TableState> addCardToDiscardPile(int cardIndex) {
+    private static @NotNull Function<TableState, TableState> addCardToDiscardPile(int cardIndex) {
         return tableState ->
                 new TableState(
                         tableState.deck(),
@@ -161,7 +161,7 @@ public record TableState(
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<TableState, TableState> updateCardStacks(CardStacks newCardStacks) {
+    private static @NotNull Function<TableState, TableState> updateCardStacks(CardStacks newCardStacks) {
         return tableState ->
                 new TableState(
                         tableState.deck(),
@@ -176,7 +176,7 @@ public record TableState(
     }
 
     @Contract(pure = true)
-    public static @NotNull Function<TableState, TableState> decrementTokenCount() {
+    private static @NotNull Function<TableState, TableState> decrementTokenCount() {
         return tableState ->
                 new TableState(
                         tableState.deck(),

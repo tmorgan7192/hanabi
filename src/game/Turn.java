@@ -20,14 +20,14 @@ public class Turn {
     @Contract(pure=true)
     public static @NotNull Function<TableState, TableState> playCard(int cardIndex) {
         return attemptPlayCard(cardIndex)
-                .andThen(drawCard())
-                .andThen(endTurn());
+            .andThen(drawCard())
+            .andThen(endTurn());
     }
 
     @Contract(pure=true)
     public static @NotNull Function<TableState, TableState> giveHint(Knowledge knowledge) {
         return updateHintCount(-1)
-                .andThen(updateKnowledge(knowledge))
-                .andThen(endTurn());
+            .andThen(updateKnowledge(knowledge))
+            .andThen(endTurn());
     }
 }

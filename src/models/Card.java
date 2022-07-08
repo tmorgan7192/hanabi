@@ -45,15 +45,11 @@ public record Card(
         Map<Knowledge.KnowledgeType, Map<String, Boolean>> knowledgeMap = new HashMap<>();
         Map<String, Boolean> colorMap = new HashMap<>();
         Map<String, Boolean> numberMap = new HashMap<>();
-        Map<String, Boolean> metaMap = new HashMap<>();
         for (Knowledge.Color color : Knowledge.Color.values()) {
             colorMap.put(color.toString(), null);
         }
         for (Knowledge.CardNumber number : Knowledge.CardNumber.values()) {
             numberMap.put(number.toString(), null);
-        }
-        for (Knowledge.Meta meta : Knowledge.Meta.values()) {
-            metaMap.put(meta.toString(), null);
         }
         knowledgeMap.put(Knowledge.KnowledgeType.COLOR, colorMap);
         knowledgeMap.put(Knowledge.KnowledgeType.NUMBER, numberMap);

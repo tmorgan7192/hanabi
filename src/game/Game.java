@@ -3,6 +3,7 @@ package game;
 import metaStrategies.CardCountMeta;
 import metaStrategies.MetaStrategy;
 import metaStrategies.SafeToDiscardMeta;
+import metaStrategies.SaveFivesMeta;
 import models.CardStacks;
 import models.Deck;
 import models.Knowledge;
@@ -39,6 +40,7 @@ public class Game {
         new PlayFirst()
     );
     public static final List<MetaStrategy> metaStrategies = List.of(
+        new SaveFivesMeta(),
         new CardCountMeta(1, Knowledge.Meta.PLAY)
     );
 
